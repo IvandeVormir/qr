@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualización de Entrada</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    #dataSection {
+      margin-top: 20px;
+      text-align: center;
+    }
+    h2 {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 id="status">Validando entrada...</h2>
+
+  <!-- Sección para mostrar los datos de la entrada -->
+  <div id="dataSection" style="display: none;">
+    <h3>Información del Participante</h3>
+    <p><strong>Nombre y Apellido:</strong> <span id="nombreApellido"></span></p>
+    <p><strong>DNI:</strong> <span id="dni"></span></p>
+    <p><strong>Número de Teléfono:</strong> <span id="telefono"></span></p>
+    <p><strong>Evento:</strong> <span id="evento"></span></p>
+  </div>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/library/d/1_h5Tc9_u2oEK21EOfUAvPGUktlYLv1T2DWEY3BFGmgBeMItmMa9wHMNH/1"; // URL del servicio de Google Apps Script
+
+    async function verificarEntrada(token) {
+      try {
+        const response = await fetch(`${scriptURL}?token=${token}`);
+        const data = await response.json();
+
+        if (data && data.status === "success") {
+          document.getElementById("status").textContent = "Entrada Válida";
+          document.getElementById("nombreApellido").textContent = data.nombre;
+          document.getElementById("dni").textContent = data.dni;
+          document.getElementById("telefono").textContent = data.telefono;
+          document.getElementById("evento").textContent = data.evento;
+
+          // Mostrar la sección de datos
+          document.getElementById("dataSection").style.display = "block";
+        } else {
+          document.getElementById("status").textContent = "Entrada no válida o no encontrada";
+          document.getElementById("status").className = "error";
+        }
+      } catch (error) {
+        document.getElementById("status").textContent = "Error al verificar la entrada";
+        document.getElementById("status").className = "error";
+        console.error("Error:", error);
+      }
+    }
+
+    function obtenerTokenDeURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get("token");
+    }
+// Ejecuta la verificación al cargar la página
+const token = obtenerTokenDeURL();
+    if (token) {
+      verificarEntrada(token);
+    } else {
+      document.getElementById("status").textContent = "Token no encontrado en la URL";
+      document.getElementById("status").className = "error";
+    }
+  </script>
+
+</body>
+</html>
+   
+

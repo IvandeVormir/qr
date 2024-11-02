@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generar Código QR</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    form, #qrForm, #qrSection {
+      margin-bottom: 20px;
+    }
+    input[type="text"], select {
+      margin: 5px;
+      padding: 8px;
+      width: 100%;
+      max-width: 300px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin: 5px;
+    }
+    #qrCode {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Generar Código QR para la Entrada</h2>
+
+  <!-- Formulario de generación de QR -->
+  <form id="qrForm">
+    <input type="text" id="nombreApellido" placeholder="Nombre y Apellido" required>
+    <input type="text" id="dni" placeholder="DNI" required>
+    <input type="text" id="telefono" placeholder="Número de Teléfono" required>
+    <label for="evento">Selecciona el Evento:</label>
+    <select id="evento" required>
+      <option value="Evento 1">Evento 1</option>
+      <option value="Evento 2">Evento 2</option>
+      <option value="Evento 3">Evento 3</option>
+      <option value="Evento 4">Evento 4</option>
+    </select>
+    <button type="button" onclick="generateQRCode()">Generar QR</button>
+  </form>
+
+  <!-- Sección para mostrar el QR generado -->
+  <div id="qrSection" style="display: none;">
+    <div id="qrCode"></div>
+    <button id="downloadButton" onclick="downloadQRCode()" style="display: none;">Descargar QR</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyrMKAt55zwiJn2dahWfPz0ObJsawF8Jt9ji-fnWK5nGFxtL3-YgbyUGHiaV_ajv6-ihw/exec"; // Reemplaza con la URL de tu Apps Script
+
+    async function enviarDatosAGoogleSheets(nombre, dni, telefono, evento, token) {
+      const data = { nombre, dni, telefono, evento, token };
+
+      try {
+        const response = await fetch(scriptURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+          console.log("Datos guardados correctamente en Google Sheets");
+        } else {
+          console.error("Error al guardar los datos");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+
+    function generateQRCode() {
+      const nombre = document.getElementById("nombreApellido").value;
+      const dni = document.getElementById("dni").value;
+      const telefono = document.getElementById("telefono").value;
+      const evento = document.getElementById("evento").value;
+      const token = Math.random().toString(36).substr(2); // Generar un token único
+
+      enviarDatosAGoogleSheets(nombre, dni, telefono, evento, token);
+
+      // Generar el QR con la URL de view.html incluyendo el token
+      const url = `https://ivandevormir.github.io/qr/view.html?token=${token}`;
+      
+      QRCode.toCanvas(url, { width: 200 }, function (error, canvas) {
+        if (error) console.error(error);
+        document.getElementById("qrCode").innerHTML = "";
+        document.getElementById("qrCode").appendChild(canvas);
+
+        // Mostrar sección del QR y el botón de descarga
+        document.getElementById("qrSection").style.display = "block";
+        document.getElementById("downloadButton").style.display = "inline-block";
+      });
+    }
+
+    // Descargar la imagen del QR como archivo
+    function downloadQRCode() {
+      const nombreApellido = document.getElementById("nombreApellido").value;
+      const qrCodeCanvas = document.getElementById("qrCode").querySelector("canvas");
+
+      if (qrCodeCanvas) {
+        const link = document.createElement("a");
+        link.href = qrCodeCanvas.toDataURL("image/png");
+        link.download = `Entrada_${nombreApellido}.png`;
+        link.click();
+      }
+    }
+  </script>
+
+</body>
+</html>
+
