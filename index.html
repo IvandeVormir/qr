@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generar Código QR</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body>
+  <h2>Generar Código QR para Entrada</h2>
+  <form id="qrForm">
+    <input type="text" id="nombre" placeholder="Nombre" required>
+    <input type="text" id="dni" placeholder="DNI" required>
+    <input type="text" id="telefono" placeholder="Teléfono" required>
+    <input type="text" id="evento" placeholder="Evento" required>
+    <button type="button" onclick="guardarDatos()">Generar QR</button>
+  </form>
+
+  <div id="qrCode" style="margin-top: 20px;"></div>
+
+  <script>
+    async function guardarDatos() {
+      // Obtener los valores de los campos de entrada
+      const nombre = document.getElementById("nombre").value;
+      const dni = document.getElementById("dni").value;
+      const telefono = document.getElementById("telefono").value;
+      const evento = document.getElementById("evento").value;
+
+      try {
+        // Enviar los datos al backend
+        const response = await fetch("https://qr-x9po.onrender.com/guardar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ nombre, dni, telefono, evento })
+        });
+
+        // Parsear la respuesta
+        const data = await response.json();
+
+        // Verificar si se guardó correctamente
+        if (data.status === "success") {
+          // Crear el código QR con el token devuelto
+          const qrCodeContainer = document.getElementById("qrCode");
+          qrCodeContainer.innerHTML = ""; // Limpiar cualquier QR previo
+          QRCode.toCanvas(data.token, { width: 200 }, (error, canvas) => {
+            if (error) console.error(error);
+            qrCodeContainer.appendChild(canvas);
+          });
+        } else {
+          console.error("Error al generar el código QR:", data.message);
+          alert("Error al generar el código QR.");
+        }
+      } catch (error) {
+        console.error("Error en la solicitud:", error);
+        alert("Error en la solicitud.");
+      }
+    }
+  </script>
+</body>
+</html>

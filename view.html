@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificar Entrada</title>
+</head>
+<body>
+  <h2>Verificar Entrada</h2>
+  <form id="verificationForm">
+    <input type="text" id="token" placeholder="Escanea o ingresa el token" required>
+    <button type="button" onclick="verificarEntrada()">Verificar Entrada</button>
+  </form>
+
+  <div id="resultado" style="margin-top: 20px;"></div>
+
+  <script>
+    async function verificarEntrada() {
+      const token = document.getElementById("token").value;
+
+      try {
+        // Enviar el token al backend para verificación
+        const response = await fetch(`https://qr-x9po.onrender.com/verificar?token=${token}`);
+        const data = await response.json();
+
+        const resultadoDiv = document.getElementById("resultado");
+        resultadoDiv.innerHTML = ""; // Limpiar resultados previos
+
+        // Verificar el estado de la respuesta
+        if (data.status === "success") {
+          // Mostrar los detalles de la entrada
+          const entrada = data.data;
+          resultadoDiv.innerHTML = `
+            <p><strong>Entrada Válida</strong></p>
+            <p>Nombre: ${entrada.nombre}</p>
+            <p>DNI: ${entrada.dni}</p>
+            <p>Teléfono: ${entrada.telefono}</p>
+            <p>Evento: ${entrada.evento}</p>
+          `;
+        } else {
+          resultadoDiv.innerHTML = `<p><strong>${data.message}</strong></p>`;
+        }
+      } catch (error) {
+        console.error("Error en la verificación:", error);
+        alert("Error en la verificación.");
+      }
+    }
+  </script>
+</body>
+</html>
